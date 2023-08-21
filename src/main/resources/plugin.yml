@@ -1,0 +1,6 @@
+name: Template
+version: '${project.version}'
+main: de.korzhorz.template.Main
+api-version: 1.20
+commands:
+
