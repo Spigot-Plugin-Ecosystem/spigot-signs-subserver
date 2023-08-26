@@ -14,6 +14,14 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class BungeeCordHandler implements PluginMessageListener {
+    private static final BungeeCordHandler instance = new BungeeCordHandler();
+
+    private BungeeCordHandler() {}
+
+    public static BungeeCordHandler getInstance() {
+        return instance;
+    }
+
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
         if(!(channel.equals("BungeeCord"))) {
             return;

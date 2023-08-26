@@ -1,8 +1,8 @@
 package de.korzhorz.signs.subserver.util;
 
-import de.korzhorz.signs.subserver.Main;
 import de.korzhorz.signs.subserver.configs.ConfigFiles;
 import de.korzhorz.signs.subserver.data.ServerData;
+import de.korzhorz.signs.subserver.handlers.BungeeCordHandler;
 import de.korzhorz.signs.subserver.handlers.DatabaseHandler;
 import de.korzhorz.signs.subserver.handlers.MySQLHandler;
 import org.bukkit.Bukkit;
@@ -70,7 +70,7 @@ public class SignDatabase extends DatabaseHandler {
         if(ConfigFiles.server.getString("server-name") == null || !ConfigFiles.server.getBoolean("server-name-updated")) {
             // Request server name
             long sentDate = System.currentTimeMillis();
-            Main.bungeeCordHandler.sendPluginMessage("GetServer");
+            BungeeCordHandler.getInstance().sendPluginMessage("GetServer");
 
             long currentDate = System.currentTimeMillis();
             while(ConfigFiles.server.getString("server-name") == null && !ConfigFiles.server.getBoolean("server-name-updated") && currentDate - sentDate < 1000) {
@@ -156,6 +156,8 @@ public class SignDatabase extends DatabaseHandler {
             preparedStatement.setString(create ? 1 : i, ConfigFiles.server.getString("server-name"));
 
             preparedStatement.executeUpdate();
+
+            BungeeCordHandler.getInstance().sendPluginMessage("Forward", new String[]{"ALL", "signs:update", ConfigFiles.server.getString("server-name")});
         } catch(SQLException e) {
             e.printStackTrace();
         }
