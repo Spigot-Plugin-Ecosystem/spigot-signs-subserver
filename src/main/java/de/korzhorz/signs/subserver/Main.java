@@ -38,8 +38,6 @@ public final class Main extends JavaPlugin {
             // Create database tables
             SignDatabase signDatabase = new SignDatabase();
             signDatabase.createTables();
-            signDatabase.updateServerData(true, true);
-
             this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&aConnected to MySQL database"));
         } else {
             this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&cCouldn't connect to MySQL database"));
@@ -67,11 +65,52 @@ public final class Main extends JavaPlugin {
         
         this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&aPlugin enabled &7- Version: &6v" + this.getDescription().getVersion()));
         this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&aDeveloped by &6KorzHorz"));
+
+        // Update server data
+        String serverMotd = Bukkit.getMotd();
+        int serverMaxPlayers = Bukkit.getMaxPlayers();
+        int serverOnlinePlayers = Bukkit.getOnlinePlayers().size();
+        SignDatabase.update(
+                serverMotd,
+                serverMaxPlayers,
+                serverOnlinePlayers,
+                true,
+                null
+        );
+
+        // Check for changed MOTD every 5 seconds
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+            @Override
+            public void run() {
+                String serverMotd = Bukkit.getMotd();
+                if(Data.oldMotd != null && Data.oldMotd.equals(serverMotd)) {
+                    return;
+                }
+
+                Data.oldMotd = serverMotd;
+                SignDatabase.update(
+                        serverMotd,
+                        null,
+                        null,
+                        null,
+                        null
+                );
+            }
+        }, 0L, 100L);
     }
 
     @Override
     public void onDisable() {
-
+        // Update server data
+        String serverMotd = Bukkit.getMotd();
+        int serverMaxPlayers = Bukkit.getMaxPlayers();
+        SignDatabase.update(
+                serverMotd,
+                serverMaxPlayers,
+                0,
+                false,
+                null
+        );
     }
     
     public void loadCommands() {

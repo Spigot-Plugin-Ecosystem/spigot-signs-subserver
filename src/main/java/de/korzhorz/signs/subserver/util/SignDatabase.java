@@ -1,7 +1,7 @@
 package de.korzhorz.signs.subserver.util;
 
-import de.korzhorz.signs.subserver.Data;
 import de.korzhorz.signs.subserver.Main;
+import de.korzhorz.signs.subserver.configs.ConfigFiles;
 import de.korzhorz.signs.subserver.data.ServerData;
 import de.korzhorz.signs.subserver.handlers.DatabaseHandler;
 import de.korzhorz.signs.subserver.handlers.MySQLHandler;
@@ -10,12 +10,11 @@ import org.bukkit.Bukkit;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Date;
 
 public class SignDatabase extends DatabaseHandler {
     @Override
     public void createTables() {
-        if(this.requireDatabaseConnection()) {
+        if(!this.requireDatabaseConnection()) {
             return;
         }
 
@@ -36,7 +35,7 @@ public class SignDatabase extends DatabaseHandler {
     }
 
     public ServerData getServerData(String serverName) {
-        if(this.requireDatabaseConnection()) {
+        if(!this.requireDatabaseConnection()) {
             return null;
         }
 
@@ -63,21 +62,22 @@ public class SignDatabase extends DatabaseHandler {
         return null;
     }
 
-    public void updateServerData(boolean online, boolean maintenance) {
-        if(this.requireDatabaseConnection()) {
+    private void updateServerData(String serverMotd, Integer serverMaxPlayers, Integer serverOnlinePlayers, Boolean online, Boolean maintenance) {
+        if(!this.requireDatabaseConnection()) {
             return;
         }
 
-        if(Data.serverName == null) {
+        if(ConfigFiles.server.getString("server-name") == null || !ConfigFiles.server.getBoolean("server-name-updated")) {
             // Request server name
-            Date sentDate = new Date();
+            long sentDate = System.currentTimeMillis();
             Main.bungeeCordHandler.sendPluginMessage("GetServer");
 
-            Date currentDate = new Date();
-            while(Data.serverName == null && currentDate.getTime() - sentDate.getTime() < 1000) {
+            long currentDate = System.currentTimeMillis();
+            while(ConfigFiles.server.getString("server-name") == null && !ConfigFiles.server.getBoolean("server-name-updated") && currentDate - sentDate < 1000) {
                 // Busy wait
+                currentDate = System.currentTimeMillis();
             }
-            if(Data.serverName == null) {
+            if(ConfigFiles.server.getString("server-name") == null) {
                 // Server name not received, abort database update
                 return;
             }
@@ -85,33 +85,94 @@ public class SignDatabase extends DatabaseHandler {
 
         String sql = "";
         boolean create = false;
-        if(this.getServerData(Data.serverName) == null) {
+        if(this.getServerData(ConfigFiles.server.getString("server-name")) == null) {
             // Create new entry
+            if(serverMotd == null) {
+                serverMotd = Bukkit.getMotd();
+            }
+            if(serverMaxPlayers == null) {
+                serverMaxPlayers = Bukkit.getMaxPlayers();
+            }
+            if(serverOnlinePlayers == null) {
+                serverOnlinePlayers = Bukkit.getOnlinePlayers().size();
+            }
+            if(online == null) {
+                online = true;
+            }
+            if(maintenance == null) {
+                maintenance = true;
+            }
+
             sql = "INSERT INTO `Signs_ServerInformation` (`serverName`, `serverMotd`, `serverMaxPlayers`, `serverOnlinePlayers`, `online`, `maintenance`) VALUES (?, ?, ?, ?, ?, ?);";
             create = true;
         } else {
             // Update entry
-            sql = "UPDATE `Signs_ServerInformation` SET `serverMotd` = ?, `serverMaxPlayers` = ?, `serverOnlinePlayers` = ?, `online` = ?, `maintenance` = ? WHERE `serverName` = ?;";
+            if(serverMotd == null && serverMaxPlayers == null && serverOnlinePlayers == null && online == null && maintenance == null) {
+                return;
+            }
+
+            sql = "UPDATE `Signs_ServerInformation` SET ";
+            if(serverMotd != null) {
+                sql += "`serverMotd` = ?,";
+            }
+            if(serverMaxPlayers != null) {
+                sql += "`serverMaxPlayers` = ?,";
+            }
+            if(serverOnlinePlayers != null) {
+                sql += "`serverOnlinePlayers` = ?,";
+            }
+            if(online != null) {
+                sql += "`online` = ?,";
+            }
+            if(maintenance != null) {
+                sql += "`maintenance` = ?,";
+            }
+            sql = sql.substring(0, sql.length() - 1);
+            sql += " WHERE `serverName` = ?;";
         }
 
-        String serverMotd = Bukkit.getMotd();
-        int serverMaxPlayers = Bukkit.getMaxPlayers();
-        int serverOnlinePlayers = Bukkit.getOnlinePlayers().size();
         try(PreparedStatement preparedStatement = MySQLHandler.getConnection().prepareStatement(sql)) {
-            preparedStatement.setString(create ? 1 : 6, Data.serverName);
-            preparedStatement.setString(create ? 2 : 1, serverMotd);
-            preparedStatement.setInt(create ? 3 : 2, serverMaxPlayers);
-            preparedStatement.setInt(create ? 4 : 3, serverOnlinePlayers);
-            preparedStatement.setBoolean(create ? 5 : 4, online);
-            if(create) {
-                preparedStatement.setBoolean(6, true);
-            } else {
-                preparedStatement.setBoolean(5, maintenance);
+            int i = 1;
+            if(serverMotd != null) {
+                preparedStatement.setString(create ? 2 : i, serverMotd);
+                i++;
             }
+            if(serverMaxPlayers != null) {
+                preparedStatement.setInt(create ? 3 : i, serverMaxPlayers);
+                i++;
+            }
+            if(serverOnlinePlayers != null) {
+                preparedStatement.setInt(create ? 4 : i, serverOnlinePlayers);
+                i++;
+            }
+            if(online != null) {
+                preparedStatement.setBoolean(create ? 5 : i, online);
+                i++;
+            }
+            if(maintenance != null) {
+                preparedStatement.setBoolean(create ? 6 : i, maintenance);
+                i++;
+            }
+            preparedStatement.setString(create ? 1 : i, ConfigFiles.server.getString("server-name"));
 
             preparedStatement.executeUpdate();
         } catch(SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void update(String serverMotd, Integer serverMaxPlayers, Integer serverOnlinePlayers, Boolean online, Boolean maintenance) {
+        Thread thread = new Thread(() -> {
+            SignDatabase signDatabase = new SignDatabase();
+            signDatabase.updateServerData(
+                    serverMotd,
+                    serverMaxPlayers,
+                    serverOnlinePlayers,
+                    online,
+                    maintenance
+            );
+        });
+
+        thread.start();
     }
 }

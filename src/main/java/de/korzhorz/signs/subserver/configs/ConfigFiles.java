@@ -10,6 +10,7 @@ public class ConfigFiles {
     public static ConfigFile config = new ConfigFile("config.yml");
     public static ConfigFile messages = new ConfigFile("messages.yml");
     public static ConfigFile updater = new ConfigFile("updater.yml");
+    public static ConfigFile server = new ConfigFile("server.yml");
     
     public static void initFileContents() {
         // Config
@@ -35,5 +36,11 @@ public class ConfigFiles {
         updater.setDefault("last-checked", new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
 
         updater.save();
+
+        // Server
+        server.setDefault("server-name", null);
+        server.setDefault("server-name-updated", false);
+
+        server.save();
     }
 }

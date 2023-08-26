@@ -2,8 +2,8 @@ package de.korzhorz.signs.subserver.handlers;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
-import de.korzhorz.signs.subserver.Data;
 import de.korzhorz.signs.subserver.Main;
+import de.korzhorz.signs.subserver.configs.ConfigFiles;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,7 +22,9 @@ public class BungeeCordHandler implements PluginMessageListener {
         ByteArrayDataInput byteArrayDataInput = ByteStreams.newDataInput(message);
         String subChannel = byteArrayDataInput.readUTF();
         if(subChannel.equals("GetServer")) {
-            Data.serverName = byteArrayDataInput.readUTF();
+            ConfigFiles.server.set("server-name", byteArrayDataInput.readUTF());
+            ConfigFiles.server.set("server-name-updated", true);
+            ConfigFiles.server.save();
         }
     }
 
