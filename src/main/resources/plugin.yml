@@ -1,6 +1,6 @@
-name: Template
+name: Signs-Subserver
 version: '${project.version}'
-main: de.korzhorz.template.Main
+main: de.korzhorz.signs.subserver.Main
 api-version: 1.20
 commands:
 

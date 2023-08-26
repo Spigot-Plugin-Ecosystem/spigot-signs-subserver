@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.korzhorz</groupId>
-    <artifactId>Template</artifactId>
+    <artifactId>Signs-Subserver</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>Template</name>
+    <name>Signs-Subserver</name>
 
     <properties>
         <java.version>1.8</java.version>
@@ -69,6 +69,11 @@
             <artifactId>spigot-api</artifactId>
             <version>1.20-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version>
         </dependency>
     </dependencies>
 </project>

@@ -1,4 +1,4 @@
-package de.korzhorz.template.configs;
+package de.korzhorz.signs.subserver.configs;
 
 public class Messages {
     public String get(String path) {

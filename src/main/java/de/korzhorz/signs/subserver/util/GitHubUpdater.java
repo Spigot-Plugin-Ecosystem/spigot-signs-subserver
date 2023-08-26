@@ -1,9 +1,9 @@
-package de.korzhorz.template.util;
+package de.korzhorz.signs.subserver.util;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import de.korzhorz.template.Main;
-import de.korzhorz.template.configs.ConfigFiles;
+import de.korzhorz.signs.subserver.Main;
+import de.korzhorz.signs.subserver.configs.ConfigFiles;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
@@ -14,7 +14,7 @@ import java.util.Date;
 
 public class GitHubUpdater {
     private static final String user = "Spigot-Plugin-Ecosystem";
-    private static final String repository = "spigot-template-spigot";
+    private static final String repository = "spigot-signs-subserver";
     private static String latestVersion = null;
     private static final String currentVersion = JavaPlugin.getPlugin(Main.class).getDescription().getVersion();
 

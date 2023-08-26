@@ -1,4 +1,4 @@
-package de.korzhorz.template.util;
+package de.korzhorz.signs.subserver.util;
 
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;

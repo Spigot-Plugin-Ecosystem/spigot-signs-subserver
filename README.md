@@ -1,4 +1,4 @@
-# Plugin-Template
+# Sign System (Unterserver)
 
 ## Befehle
 #### `/command` (Berechtigung: `permission`)

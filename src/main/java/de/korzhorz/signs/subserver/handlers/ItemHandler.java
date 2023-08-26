@@ -1,4 +1,4 @@
-package de.korzhorz.template.handlers;
+package de.korzhorz.signs.subserver.handlers;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
