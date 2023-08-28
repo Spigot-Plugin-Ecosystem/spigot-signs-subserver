@@ -7,6 +7,7 @@ import de.korzhorz.signs.subserver.handlers.BungeeCordHandler;
 import de.korzhorz.signs.subserver.handlers.DatabaseHandler;
 import de.korzhorz.signs.subserver.handlers.MySQLHandler;
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -184,5 +185,14 @@ public class SignDatabase extends DatabaseHandler {
         });
 
         thread.start();
+    }
+
+    public static boolean getMaintenance() {
+        ServerData serverData = new SignDatabase().getServerData(ConfigFiles.server.getString("server-name"));
+        if(serverData == null) {
+            return false;
+        }
+
+        return serverData.getMaintenance();
     }
 }

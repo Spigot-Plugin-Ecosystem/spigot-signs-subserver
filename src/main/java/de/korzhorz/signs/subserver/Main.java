@@ -1,5 +1,6 @@
 package de.korzhorz.signs.subserver;
 
+import de.korzhorz.signs.subserver.commands.CMD_Maintenance;
 import de.korzhorz.signs.subserver.configs.ConfigFiles;
 import de.korzhorz.signs.subserver.handlers.BungeeCordHandler;
 import de.korzhorz.signs.subserver.handlers.MySQLHandler;
@@ -9,6 +10,8 @@ import de.korzhorz.signs.subserver.util.GitHubUpdater;
 import de.korzhorz.signs.subserver.util.SignDatabase;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.Objects;
 
 public final class Main extends JavaPlugin {
     @Override
@@ -123,7 +126,7 @@ public final class Main extends JavaPlugin {
     }
     
     public void loadCommands() {
-
+        Objects.requireNonNull(this.getCommand("maintenance")).setExecutor(new CMD_Maintenance());
     }
     
     public void loadEvents() {

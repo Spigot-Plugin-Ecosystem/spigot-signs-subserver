@@ -29,6 +29,11 @@ public class ConfigFiles {
         messages.setDefault("commands.errors.bad-usage", "&cBenutze: &7%usage%");
         messages.setDefault("commands.errors.save-failed", "&cDie Änderungen konnten nicht gespeichert werden.");
 
+        messages.setDefault("commands.maintenance.status.enabled", "&7Der Wartungsmodus ist &aaktiviert&7.");
+        messages.setDefault("commands.maintenance.status.disabled", "&7Der Wartungsmodus ist &cdeaktiviert&7.");
+        messages.setDefault("commands.maintenance.enable", "&7Der Wartungsmodus wurde &aaktiviert&7.");
+        messages.setDefault("commands.maintenance.disable", "&7Der Wartungsmodus wurde &cdeaktiviert&7.");
+
         messages.save();
 
         // Updater
