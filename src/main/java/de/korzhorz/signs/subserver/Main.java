@@ -73,7 +73,8 @@ public final class Main extends JavaPlugin {
                 serverMaxPlayers,
                 serverOnlinePlayers,
                 true,
-                null
+                null,
+                false
         );
 
         // Check for changed MOTD every 5 seconds
@@ -91,7 +92,8 @@ public final class Main extends JavaPlugin {
                         null,
                         null,
                         null,
-                        null
+                        null,
+                        false
                 );
             }
         }, 0L, 100L);
@@ -99,6 +101,8 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        Data.shutdownBlocked = true;
+
         // Update server data
         String serverMotd = Bukkit.getMotd();
         int serverMaxPlayers = Bukkit.getMaxPlayers();
@@ -107,8 +111,13 @@ public final class Main extends JavaPlugin {
                 serverMaxPlayers,
                 0,
                 false,
-                null
+                null,
+                true
         );
+
+        while(Data.shutdownBlocked) {
+            // Busy wait
+        }
 
         MySQLHandler.disconnect();
     }

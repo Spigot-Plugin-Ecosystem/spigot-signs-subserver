@@ -1,5 +1,6 @@
 package de.korzhorz.signs.subserver.util;
 
+import de.korzhorz.signs.subserver.Data;
 import de.korzhorz.signs.subserver.configs.ConfigFiles;
 import de.korzhorz.signs.subserver.data.ServerData;
 import de.korzhorz.signs.subserver.handlers.BungeeCordHandler;
@@ -62,12 +63,12 @@ public class SignDatabase extends DatabaseHandler {
         return null;
     }
 
-    private void updateServerData(String serverMotd, Integer serverMaxPlayers, Integer serverOnlinePlayers, Boolean online, Boolean maintenance) {
+    private void updateServerData(String serverMotd, Integer serverMaxPlayers, Integer serverOnlinePlayers, Boolean online, Boolean maintenance, boolean shutdown) {
         if(!this.requireDatabaseConnection()) {
             return;
         }
 
-        if(ConfigFiles.server.getString("server-name") == null || !ConfigFiles.server.getBoolean("server-name-updated")) {
+        if(!shutdown && (ConfigFiles.server.getString("server-name") == null || !ConfigFiles.server.getBoolean("server-name-updated"))) {
             // Request server name
             long sentDate = System.currentTimeMillis();
             BungeeCordHandler.getInstance().sendPluginMessage("GetServer");
@@ -157,13 +158,15 @@ public class SignDatabase extends DatabaseHandler {
 
             preparedStatement.executeUpdate();
 
-            BungeeCordHandler.getInstance().sendPluginMessage("Forward", new String[]{"ALL", "signs:update", ConfigFiles.server.getString("server-name")});
+            if(!shutdown) {
+                BungeeCordHandler.getInstance().sendPluginMessage("Forward", new String[]{"ALL", "signs:update", ConfigFiles.server.getString("server-name")});
+            }
         } catch(SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public static void update(String serverMotd, Integer serverMaxPlayers, Integer serverOnlinePlayers, Boolean online, Boolean maintenance) {
+    public static void update(String serverMotd, Integer serverMaxPlayers, Integer serverOnlinePlayers, Boolean online, Boolean maintenance, boolean shutdown) {
         Thread thread = new Thread(() -> {
             SignDatabase signDatabase = new SignDatabase();
             signDatabase.updateServerData(
@@ -171,8 +174,13 @@ public class SignDatabase extends DatabaseHandler {
                     serverMaxPlayers,
                     serverOnlinePlayers,
                     online,
-                    maintenance
+                    maintenance,
+                    shutdown
             );
+
+            if(shutdown) {
+                Data.shutdownBlocked = false;
+            }
         });
 
         thread.start();

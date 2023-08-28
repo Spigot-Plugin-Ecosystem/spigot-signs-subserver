@@ -23,7 +23,8 @@ public class EVT_UpdatePlayerCount implements Listener {
                         serverMaxPlayers,
                         serverOnlinePlayers,
                         null,
-                        null
+                        null,
+                        false
                 );
             }
         }, 1L);
@@ -42,7 +43,8 @@ public class EVT_UpdatePlayerCount implements Listener {
                         serverMaxPlayers,
                         serverOnlinePlayers,
                         null,
-                        null
+                        null,
+                        false
                 );
             }
         }, 1L);
