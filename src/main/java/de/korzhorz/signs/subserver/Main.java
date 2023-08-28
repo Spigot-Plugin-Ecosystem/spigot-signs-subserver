@@ -120,6 +120,11 @@ public final class Main extends JavaPlugin {
 
         while(Data.shutdownBlocked) {
             // Busy wait
+            try {
+                Thread.sleep(100);
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         MySQLHandler.disconnect();
