@@ -7,3 +7,7 @@ commands:
     description: Set the maintenance mode
     usage: /maintenance <on|off|status>
     permission: maintenance
+  motd:
+    description: Set the MOTD
+    usage: /motd <text>
+    permission: motd

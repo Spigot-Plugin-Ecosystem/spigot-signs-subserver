@@ -28,17 +28,19 @@ public class ConfigFiles {
         config.save();
 
         // Messages
-        messages.setDefault("prefix", "&6&lSigns &8»");
+        messages.setDefault("prefix", "&6&l" + PluginConfig.pluginName + " &8»");
 
         messages.setDefault("commands.errors.no-player", "&cDu musst ein Spieler sein um diesen Befehl auszuführen.");
         messages.setDefault("commands.errors.no-permission", "&cDu hast keine Rechte um diesen Befehl auszuführen.");
         messages.setDefault("commands.errors.bad-usage", "&cBenutze: &7%usage%");
         messages.setDefault("commands.errors.save-failed", "&cDie Änderungen konnten nicht gespeichert werden.");
 
-        messages.setDefault("commands.maintenance.status.enabled", "&7Der Wartungsmodus ist &aaktiviert&7.");
-        messages.setDefault("commands.maintenance.status.disabled", "&7Der Wartungsmodus ist &cdeaktiviert&7.");
-        messages.setDefault("commands.maintenance.enable", "&7Der Wartungsmodus wurde &aaktiviert&7.");
-        messages.setDefault("commands.maintenance.disable", "&7Der Wartungsmodus wurde &cdeaktiviert&7.");
+        messages.setDefault("commands.maintenance.status.enabled", "&7Der &6Wartungsmodus &7ist &aaktiviert&7.");
+        messages.setDefault("commands.maintenance.status.disabled", "&7Der &6Wartungsmodus &7ist &cdeaktiviert&7.");
+        messages.setDefault("commands.maintenance.enable", "&7Der &6Wartungsmodus &7wurde &aaktiviert&7.");
+        messages.setDefault("commands.maintenance.disable", "&7Der &6Wartungsmodus &7wurde &cdeaktiviert&7.");
+
+        messages.setDefault("commands.motd.set", "&7Die &6Serverinformation &7wurde &agespeichert &7.");
 
         messages.save();
 

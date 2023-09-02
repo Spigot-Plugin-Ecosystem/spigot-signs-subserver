@@ -92,6 +92,11 @@ public final class Main extends JavaPlugin {
         consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&aPlugin enabled &7- Version: &6v" + this.getDescription().getVersion()));
         consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&aDeveloped by &6KorzHorz"));
 
+        // Update MOTD
+        if(ConfigFiles.config.contains("motd")) {
+            Bukkit.setMotd(CTUtil.translate(ConfigFiles.config.getString("motd")));
+        }
+
         // Update server data
         String serverMotd = Bukkit.getMotd();
         int serverMaxPlayers = Bukkit.getMaxPlayers();

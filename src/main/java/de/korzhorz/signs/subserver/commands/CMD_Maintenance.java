@@ -12,14 +12,14 @@ public class CMD_Maintenance implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(!(sender.hasPermission("maintenance"))) {
             sender.sendMessage(CTUtil.translate(Messages.get("prefix") + "&r " + Messages.get("commands.errors.no-permission")));
-            return false;
+            return true;
         }
 
         if(args.length != 1) {
             String message = Messages.get("commands.errors.bad-usage");
             message = message.replaceAll("%usage%", command.getUsage());
             sender.sendMessage(CTUtil.translate(Messages.get("prefix") + "&r " + message));
-            return false;
+            return true;
         }
 
         String message = "";
@@ -38,7 +38,7 @@ public class CMD_Maintenance implements CommandExecutor {
                 message = Messages.get("commands.errors.bad-usage");
                 message = message.replaceAll("%usage%", command.getUsage());
                 sender.sendMessage(CTUtil.translate(Messages.get("prefix") + "&r " + message));
-                return false;
+                return true;
         }
 
         DB_Signs.getInstance().update(

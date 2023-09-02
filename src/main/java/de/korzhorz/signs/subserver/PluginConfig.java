@@ -1,6 +1,7 @@
 package de.korzhorz.signs.subserver;
 
 import de.korzhorz.signs.subserver.commands.CMD_Maintenance;
+import de.korzhorz.signs.subserver.commands.CMD_MotD;
 import de.korzhorz.signs.subserver.database.DB_Signs;
 import de.korzhorz.signs.subserver.listeners.EVT_UpdatePlayerCount;
 import de.korzhorz.signs.subserver.listeners.pluginchannels.PC_GetServer;
@@ -24,7 +25,8 @@ public class PluginConfig {
         DB_Signs.getInstance()
     };
     public static Command[] commands = new Command[]{
-        new Command("maintenance", new CMD_Maintenance())
+        new Command("maintenance", new CMD_Maintenance()),
+        new Command("motd", new CMD_MotD())
     };
     public static Listener[] listeners = new Listener[]{
         new EVT_UpdatePlayerCount()
