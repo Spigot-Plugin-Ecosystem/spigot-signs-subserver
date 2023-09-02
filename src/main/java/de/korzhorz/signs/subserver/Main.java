@@ -1,77 +1,102 @@
 package de.korzhorz.signs.subserver;
 
-import de.korzhorz.signs.subserver.commands.CMD_Maintenance;
 import de.korzhorz.signs.subserver.configs.ConfigFiles;
-import de.korzhorz.signs.subserver.handlers.BungeeCordHandler;
-import de.korzhorz.signs.subserver.handlers.MySQLHandler;
-import de.korzhorz.signs.subserver.listeners.EVT_UpdatePlayerCount;
-import de.korzhorz.signs.subserver.util.ColorTranslator;
-import de.korzhorz.signs.subserver.util.GitHubUpdater;
-import de.korzhorz.signs.subserver.util.SignDatabase;
+import de.korzhorz.signs.subserver.database.DB_Signs;
+import de.korzhorz.signs.subserver.util.bungeecord.PluginChannelEvent;
+import de.korzhorz.signs.subserver.util.bungeecord.PluginChannelInitiator;
+import de.korzhorz.signs.subserver.util.bungeecord.PluginChannelUtil;
+import de.korzhorz.signs.subserver.util.data.Command;
+import de.korzhorz.signs.subserver.util.database.DatabaseTableUtil;
+import de.korzhorz.signs.subserver.util.database.MySQLUtil;
+import de.korzhorz.signs.subserver.util.messages.CTUtil;
+import de.korzhorz.signs.subserver.util.meta.Data;
+import de.korzhorz.signs.subserver.util.meta.GitHubUpdater;
 import org.bukkit.Bukkit;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.Objects;
 
 public final class Main extends JavaPlugin {
     @Override
     public void onEnable() {
-        final String consolePrefix = "&7[&6Signs&7]&r ";
+        final String consolePrefix = "&7[&6" + PluginConfig.pluginName + "&7]&r ";
+        final ConsoleCommandSender consoleSender = Bukkit.getConsoleSender();
 
-        this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&7Enabling"));
-        
+        consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&7Enabling"));
+
         this.getDataFolder().mkdir();
 
-        // Plugin channels
-        this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&7Setting up plugin channels"));
-        this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", BungeeCordHandler.getInstance());
-        this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&aPlugin channels set up"));
-        
         // Configuration files
-        this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&7Loading files"));
+        consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&7Loading files"));
         ConfigFiles.initFileContents();
-        this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&aFiles loaded"));
+        consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&aFiles loaded"));
 
-        // MySQL database
-        this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&7Connecting to MySQL database"));
-        if(MySQLHandler.connect()) {
-            // Create database tables
-            SignDatabase signDatabase = new SignDatabase();
-            signDatabase.createTables();
-            this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&aConnected to MySQL database"));
-        } else {
-            this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&cCouldn't connect to MySQL database"));
-            this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&cDisabling plugin"));
-            this.getServer().getPluginManager().disablePlugin(this);
+        // Check if server is running in BungeeCord network
+        if(this.detectBungeeCord()) {
+            consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&cWARNING: The BungeeCord mode was forced to be enabled"));
+            consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&cWARNING: This could cause problems if the server is not actually running in a BungeeCord network"));
+        }
+        if(PluginConfig.requireBungeeCord && !(Data.bungeeCord)) {
+            consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&cServer is not running in a BungeeCord network"));
+            consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&cIf this is a mistake, please set the option \"bungeecord.enforce\" in the config.yml to \"true\""));
+            consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&cDisabling plugin"));
+            Bukkit.getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        
+
+        // Plugin channels
+        if(PluginConfig.pluginChannels) {
+            consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&7Setting up plugin channels"));
+            this.loadPluginChannels();
+            consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&aPlugin channels set up"));
+        }
+
+        // MySQL database
+        if(PluginConfig.mySql) {
+            consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&7Connecting to MySQL database"));
+            Data.mySql = MySQLUtil.connect();
+
+            if(Data.mySql) {
+                this.loadDatabase();
+                consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&aConnected to MySQL database"));
+            } else {
+                consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&cCouldn't connect to MySQL database"));
+
+                if(PluginConfig.requireMySql) {
+                    consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&cDisabling plugin"));
+                    Bukkit.getServer().getPluginManager().disablePlugin(this);
+                    return;
+                }
+            }
+        }
+
         // Commands
-        this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&7Loading commands"));
-        loadCommands();
-        this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&aCommands loaded"));
+        consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&7Loading commands"));
+        this.loadCommands();
+        consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&aCommands loaded"));
         
         // Events
-        this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&7Loading events"));
-        loadEvents();
-        this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&aEvents loaded"));
+        consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&7Loading events"));
+        this.loadEvents();
+        consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&aEvents loaded"));
         
-        // Update Checker
+        // Update checker
         if(GitHubUpdater.updateAvailable()) {
-            this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix));
-            this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&9A new update for this plugin is available"));
-            this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix));
+            consoleSender.sendMessage(CTUtil.translate(consolePrefix));
+            consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&9A new update for this plugin is available"));
+            consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&9You can download it at " + GitHubUpdater.getGitHubUrl()));
+            consoleSender.sendMessage(CTUtil.translate(consolePrefix));
         }
-        
-        this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&aPlugin enabled &7- Version: &6v" + this.getDescription().getVersion()));
-        this.getServer().getConsoleSender().sendMessage(ColorTranslator.translate(consolePrefix + "&aDeveloped by &6KorzHorz"));
+
+        consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&aPlugin enabled &7- Version: &6v" + this.getDescription().getVersion()));
+        consoleSender.sendMessage(CTUtil.translate(consolePrefix + "&aDeveloped by &6KorzHorz"));
 
         // Update server data
         String serverMotd = Bukkit.getMotd();
         int serverMaxPlayers = Bukkit.getMaxPlayers();
         int serverOnlinePlayers = Bukkit.getOnlinePlayers().size();
-        SignDatabase.update(
+        DB_Signs.getInstance().update(
                 serverMotd,
                 serverMaxPlayers,
                 serverOnlinePlayers,
@@ -85,12 +110,12 @@ public final class Main extends JavaPlugin {
             @Override
             public void run() {
                 String serverMotd = Bukkit.getMotd();
-                if(Data.oldMotd != null && Data.oldMotd.equals(serverMotd)) {
+                if(de.korzhorz.signs.subserver.data.Data.oldMotd != null && de.korzhorz.signs.subserver.data.Data.oldMotd.equals(serverMotd)) {
                     return;
                 }
 
-                Data.oldMotd = serverMotd;
-                SignDatabase.update(
+                de.korzhorz.signs.subserver.data.Data.oldMotd = serverMotd;
+                DB_Signs.getInstance().update(
                         serverMotd,
                         null,
                         null,
@@ -104,12 +129,12 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        Data.shutdownBlocked = true;
+        de.korzhorz.signs.subserver.data.Data.shutdownBlocked = true;
 
         // Update server data
         String serverMotd = Bukkit.getMotd();
         int serverMaxPlayers = Bukkit.getMaxPlayers();
-        SignDatabase.update(
+        DB_Signs.getInstance().update(
                 serverMotd,
                 serverMaxPlayers,
                 0,
@@ -118,8 +143,7 @@ public final class Main extends JavaPlugin {
                 true
         );
 
-        while(Data.shutdownBlocked) {
-            // Busy wait
+        while(de.korzhorz.signs.subserver.data.Data.shutdownBlocked) {
             try {
                 Thread.sleep(100);
             } catch(InterruptedException e) {
@@ -127,14 +151,56 @@ public final class Main extends JavaPlugin {
             }
         }
 
-        MySQLHandler.disconnect();
+        MySQLUtil.disconnect();
+    }
+
+    public boolean detectBungeeCord() {
+        try {
+            Data.bungeeCord = Bukkit.getServer().spigot().getConfig().getBoolean("settings.bungeecord");
+        } catch(Exception e) {
+            // Catch block left empty on purpose
+        }
+
+        if(!(Data.bungeeCord) && ConfigFiles.config.getBoolean("bungeecord.enforce")) {
+            Data.bungeeCord = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    public void loadPluginChannels() {
+        Bukkit.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", PluginChannelUtil.getInstance());
+        Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        this.loadPluginMessages();
+    }
+
+    public void loadPluginMessages() {
+        for(PluginChannelEvent pluginChannelEvent : PluginConfig.pluginChannelEvents) {
+            PluginChannelInitiator.registerPluginChannelEvent(pluginChannelEvent.getHandledSubChannel(), pluginChannelEvent);
+        }
+    }
+
+    public void loadDatabase() {
+        for(DatabaseTableUtil databaseTableUtil : PluginConfig.databaseTableUtils) {
+            databaseTableUtil.createTable();
+        }
     }
     
     public void loadCommands() {
-        Objects.requireNonNull(this.getCommand("maintenance")).setExecutor(new CMD_Maintenance());
+        for(Command command : PluginConfig.commands) {
+            PluginCommand pluginCommand = this.getCommand(command.name());
+            if(pluginCommand == null) {
+                continue;
+            }
+
+            pluginCommand.setExecutor(command.commandExecutor());
+        }
     }
     
     public void loadEvents() {
-        Bukkit.getPluginManager().registerEvents(new EVT_UpdatePlayerCount(), this);
+        for(Listener listener : PluginConfig.listeners) {
+            Bukkit.getServer().getPluginManager().registerEvents(listener, this);
+        }
     }
 }

@@ -1,21 +1,30 @@
-package de.korzhorz.signs.subserver.util;
+package de.korzhorz.signs.subserver.database;
 
-import de.korzhorz.signs.subserver.Data;
 import de.korzhorz.signs.subserver.configs.ConfigFiles;
+import de.korzhorz.signs.subserver.data.Data;
 import de.korzhorz.signs.subserver.data.ServerData;
-import de.korzhorz.signs.subserver.handlers.BungeeCordHandler;
-import de.korzhorz.signs.subserver.handlers.DatabaseHandler;
-import de.korzhorz.signs.subserver.handlers.MySQLHandler;
+import de.korzhorz.signs.subserver.util.bungeecord.PluginChannelUtil;
+import de.korzhorz.signs.subserver.util.database.DatabaseTableUtil;
+import de.korzhorz.signs.subserver.util.database.MySQLUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class SignDatabase extends DatabaseHandler {
+public class DB_Signs extends DatabaseTableUtil {
+    private final static DB_Signs instance = new DB_Signs();
+
+    public static DB_Signs getInstance() {
+        return instance;
+    }
+
+    private DB_Signs() {
+
+    }
+
     @Override
-    public void createTables() {
+    public void createTable() {
         if(!this.requireDatabaseConnection()) {
             return;
         }
@@ -29,7 +38,7 @@ public class SignDatabase extends DatabaseHandler {
         sql += "`maintenance` TINYINT(1) NOT NULL DEFAULT 0";
         sql += ");";
 
-        try(PreparedStatement preparedStatement = MySQLHandler.getConnection().prepareStatement(sql)) {
+        try(PreparedStatement preparedStatement = MySQLUtil.getConnection().prepareStatement(sql)) {
             preparedStatement.executeUpdate();
         } catch(SQLException e) {
             e.printStackTrace();
@@ -43,7 +52,7 @@ public class SignDatabase extends DatabaseHandler {
 
         String sql = "SELECT * FROM `Signs_ServerInformation` WHERE `serverName` = ?;";
 
-        try(PreparedStatement preparedStatement = MySQLHandler.getConnection().prepareStatement(sql)) {
+        try(PreparedStatement preparedStatement = MySQLUtil.getConnection().prepareStatement(sql)) {
             preparedStatement.setString(1, serverName);
 
             ResultSet result = preparedStatement.executeQuery();
@@ -72,7 +81,7 @@ public class SignDatabase extends DatabaseHandler {
         if(!shutdown && (ConfigFiles.server.getString("server-name") == null || !ConfigFiles.server.getBoolean("server-name-updated"))) {
             // Request server name
             long sentDate = System.currentTimeMillis();
-            BungeeCordHandler.getInstance().sendPluginMessage("GetServer");
+            PluginChannelUtil.getInstance().sendPluginMessage("GetServer");
 
             long currentDate = System.currentTimeMillis();
             while(ConfigFiles.server.getString("server-name") == null && !ConfigFiles.server.getBoolean("server-name-updated") && currentDate - sentDate < 1000) {
@@ -133,7 +142,7 @@ public class SignDatabase extends DatabaseHandler {
             sql += " WHERE `serverName` = ?;";
         }
 
-        try(PreparedStatement preparedStatement = MySQLHandler.getConnection().prepareStatement(sql)) {
+        try(PreparedStatement preparedStatement = MySQLUtil.getConnection().prepareStatement(sql)) {
             int i = 1;
             if(serverMotd != null) {
                 preparedStatement.setString(create ? 2 : i, serverMotd);
@@ -160,17 +169,16 @@ public class SignDatabase extends DatabaseHandler {
             preparedStatement.executeUpdate();
 
             if(!shutdown) {
-                BungeeCordHandler.getInstance().sendPluginMessage("Forward", new String[]{"ALL", "signs:update", ConfigFiles.server.getString("server-name")});
+                PluginChannelUtil.getInstance().sendPluginMessage("Forward", "ALL", "signs:update", ConfigFiles.server.getString("server-name"));
             }
         } catch(SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public static void update(String serverMotd, Integer serverMaxPlayers, Integer serverOnlinePlayers, Boolean online, Boolean maintenance, boolean shutdown) {
+    public void update(String serverMotd, Integer serverMaxPlayers, Integer serverOnlinePlayers, Boolean online, Boolean maintenance, boolean shutdown) {
         Thread thread = new Thread(() -> {
-            SignDatabase signDatabase = new SignDatabase();
-            signDatabase.updateServerData(
+            DB_Signs.getInstance().updateServerData(
                     serverMotd,
                     serverMaxPlayers,
                     serverOnlinePlayers,
@@ -187,8 +195,8 @@ public class SignDatabase extends DatabaseHandler {
         thread.start();
     }
 
-    public static boolean getMaintenance() {
-        ServerData serverData = new SignDatabase().getServerData(ConfigFiles.server.getString("server-name"));
+    public boolean getMaintenance() {
+        ServerData serverData = DB_Signs.getInstance().getServerData(ConfigFiles.server.getString("server-name"));
         if(serverData == null) {
             return false;
         }

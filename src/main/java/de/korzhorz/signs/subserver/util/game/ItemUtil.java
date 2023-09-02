@@ -1,4 +1,4 @@
-package de.korzhorz.signs.subserver.handlers;
+package de.korzhorz.signs.subserver.util.game;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -7,7 +7,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.List;
 import java.util.Objects;
 
-public class ItemHandler {
+public class ItemUtil {
+    private ItemUtil() {
+
+    }
+
     public static ItemStack getItem(String material, int amount, String displayName) {
         ItemStack itemStack = new ItemStack(Objects.requireNonNull(Material.matchMaterial(material)), amount);
         ItemMeta itemMeta = itemStack.getItemMeta();

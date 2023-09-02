@@ -1,7 +1,7 @@
 package de.korzhorz.signs.subserver.listeners;
 
 import de.korzhorz.signs.subserver.Main;
-import de.korzhorz.signs.subserver.util.SignDatabase;
+import de.korzhorz.signs.subserver.database.DB_Signs;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,7 +18,7 @@ public class EVT_UpdatePlayerCount implements Listener {
         Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(Main.class), new Runnable() {
             @Override
             public void run() {
-                SignDatabase.update(
+                DB_Signs.getInstance().update(
                         serverMotd,
                         serverMaxPlayers,
                         serverOnlinePlayers,
@@ -38,7 +38,7 @@ public class EVT_UpdatePlayerCount implements Listener {
         Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(Main.class), new Runnable() {
             @Override
             public void run() {
-                SignDatabase.update(
+                DB_Signs.getInstance().update(
                         serverMotd,
                         serverMaxPlayers,
                         serverOnlinePlayers,

@@ -1,10 +1,10 @@
-package de.korzhorz.signs.subserver.handlers;
+package de.korzhorz.signs.subserver.util.database;
 
 import de.korzhorz.signs.subserver.configs.ConfigFiles;
 
 import java.sql.Connection;
 
-public class MySQLHandler {
+public class MySQLUtil {
     private static Connection connection;
     private static final String host = ConfigFiles.config.getString("mysql.host");
     private static final int port = ConfigFiles.config.getInt("mysql.port");
@@ -13,9 +13,9 @@ public class MySQLHandler {
     private static final String password = ConfigFiles.config.getString("mysql.password");
 
     public static boolean connect() {
-        if(!(MySQLHandler.isConnected())) {
+        if(!(MySQLUtil.isConnected())) {
             try {
-                MySQLHandler.connection = java.sql.DriverManager.getConnection("jdbc:mysql://" + MySQLHandler.host + ":" + MySQLHandler.port + "/" + MySQLHandler.database, MySQLHandler.username, MySQLHandler.password);
+                MySQLUtil.connection = java.sql.DriverManager.getConnection("jdbc:mysql://" + MySQLUtil.host + ":" + MySQLUtil.port + "/" + MySQLUtil.database, MySQLUtil.username, MySQLUtil.password);
                 return true;
             } catch(java.sql.SQLException e) {
                 e.printStackTrace();
@@ -27,9 +27,9 @@ public class MySQLHandler {
     }
 
     public static void disconnect() {
-        if(MySQLHandler.isConnected()) {
+        if(MySQLUtil.isConnected()) {
             try {
-                MySQLHandler.connection.close();
+                MySQLUtil.connection.close();
             } catch(java.sql.SQLException e) {
                 e.printStackTrace();
             }
@@ -37,10 +37,10 @@ public class MySQLHandler {
     }
 
     public static boolean isConnected() {
-        return MySQLHandler.connection != null;
+        return MySQLUtil.connection != null;
     }
 
     public static Connection getConnection() {
-        return MySQLHandler.connection;
+        return MySQLUtil.connection;
     }
 }

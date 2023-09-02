@@ -1,9 +1,11 @@
-package de.korzhorz.signs.subserver.util;
+package de.korzhorz.signs.subserver.util.meta;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import de.korzhorz.signs.subserver.Main;
+import de.korzhorz.signs.subserver.PluginConfig;
 import de.korzhorz.signs.subserver.configs.ConfigFiles;
+import de.korzhorz.signs.subserver.util.messages.CTUtil;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
@@ -13,10 +15,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class GitHubUpdater {
-    private static final String user = "Spigot-Plugin-Ecosystem";
-    private static final String repository = "spigot-signs-subserver";
     private static String latestVersion = null;
     private static final String currentVersion = JavaPlugin.getPlugin(Main.class).getDescription().getVersion();
+
+    private GitHubUpdater() {
+
+    }
 
     public static boolean updateAvailable() {
         GitHubUpdater.checkUpdates();
@@ -52,7 +56,7 @@ public class GitHubUpdater {
         }
         
         try {
-            String url = "https://api.github.com/repos/" + user + "/" + repository + "/releases";
+            String url = "https://api.github.com/repos/" + PluginConfig.gitHubUser + "/" + PluginConfig.gitHubRepo + "/releases";
 
             try(InputStream inputStream = new URL(url).openStream()) {
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
@@ -65,7 +69,7 @@ public class GitHubUpdater {
                 JsonArray jsonArray = new Gson().fromJson(json, JsonArray.class);
 
                 if(jsonArray.size() == 0) {
-                    JavaPlugin.getPlugin(Main.class).getServer().getConsoleSender().sendMessage(ColorTranslator.translate("&7[&9GitHub&7] &cGitHub update checker unavailable"));
+                    JavaPlugin.getPlugin(Main.class).getServer().getConsoleSender().sendMessage(CTUtil.translate("&7[&9GitHub&7] &cGitHub update checker unavailable"));
                     latestVersion = ConfigFiles.updater.getString("latest");
                     return;
                 }
@@ -76,12 +80,16 @@ public class GitHubUpdater {
                 ConfigFiles.updater.set("last-checked", new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
                 ConfigFiles.updater.save();
             } catch(FileNotFoundException e) {
-                JavaPlugin.getPlugin(Main.class).getServer().getConsoleSender().sendMessage(ColorTranslator.translate("&7[&9GitHub&7] &cGitHub update checker unavailable"));
+                JavaPlugin.getPlugin(Main.class).getServer().getConsoleSender().sendMessage(CTUtil.translate("&7[&9GitHub&7] &cGitHub update checker unavailable"));
                 latestVersion = ConfigFiles.updater.getString("latest");
             }
         } catch(IOException e) {
-            JavaPlugin.getPlugin(Main.class).getServer().getConsoleSender().sendMessage(ColorTranslator.translate("&7[&9GitHub&7] &cGitHub update checker unavailable"));
+            JavaPlugin.getPlugin(Main.class).getServer().getConsoleSender().sendMessage(CTUtil.translate("&7[&9GitHub&7] &cGitHub update checker unavailable"));
             latestVersion = ConfigFiles.updater.getString("latest");
         }
+    }
+
+    public static String getGitHubUrl() {
+        return "https://github.com/" + PluginConfig.gitHubUser + "/" + PluginConfig.gitHubRepo + "/releases";
     }
 }

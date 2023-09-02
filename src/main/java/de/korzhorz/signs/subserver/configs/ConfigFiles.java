@@ -1,6 +1,7 @@
 package de.korzhorz.signs.subserver.configs;
 
 import de.korzhorz.signs.subserver.Main;
+import de.korzhorz.signs.subserver.PluginConfig;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.text.SimpleDateFormat;
@@ -11,14 +12,19 @@ public class ConfigFiles {
     public static ConfigFile messages = new ConfigFile("messages.yml");
     public static ConfigFile updater = new ConfigFile("updater.yml");
     public static ConfigFile server = new ConfigFile("server.yml");
-    
+
     public static void initFileContents() {
         // Config
-        config.setDefault("mysql.host", "localhost");
-        config.setDefault("mysql.port", 3306);
-        config.setDefault("mysql.database", "database");
-        config.setDefault("mysql.username", "username");
-        config.setDefault("mysql.password", "password");
+        if(PluginConfig.mySql) {
+            config.setDefault("mysql.host", "localhost");
+            config.setDefault("mysql.port", 3306);
+            config.setDefault("mysql.database", "database");
+            config.setDefault("mysql.username", "username");
+            config.setDefault("mysql.password", "password");
+        }
+        if(PluginConfig.requireBungeeCord) {
+            config.setDefault("bungeecord.enforce", false);
+        }
         config.save();
 
         // Messages
