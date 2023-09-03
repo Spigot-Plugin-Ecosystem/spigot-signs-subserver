@@ -1,3 +1,5 @@
+![Header](./img/readme-header.png)
+
 # Signs (Unterserver)
 Dieses Plugin ist für die Unterserver eines BungeeCord-Netzwerks entwickelt.
 Es aktualisiert die Serverinformationen wie die Spieleranzahl und die MOTD in einer MySQL-Datenbank, sodass das [Signs-Plugin für Lobby-Server](https://github.com/Spigot-Plugin-Ecosystem/spigot-signs-lobby) aktuelle Daten auf den Schildern anzeigen kann.
