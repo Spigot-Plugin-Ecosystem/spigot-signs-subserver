@@ -3,6 +3,7 @@ package de.korzhorz.signs.subserver;
 import de.korzhorz.signs.subserver.commands.CMD_Maintenance;
 import de.korzhorz.signs.subserver.commands.CMD_MotD;
 import de.korzhorz.signs.subserver.database.DB_Signs;
+import de.korzhorz.signs.subserver.listeners.EVT_LoginEvent;
 import de.korzhorz.signs.subserver.listeners.EVT_UpdatePlayerCount;
 import de.korzhorz.signs.subserver.listeners.pluginchannels.PC_GetServer;
 import de.korzhorz.signs.subserver.util.bungeecord.PluginChannelEvent;
@@ -29,7 +30,8 @@ public class PluginConfig {
         new Command("motd", new CMD_MotD())
     };
     public static Listener[] listeners = new Listener[]{
-        new EVT_UpdatePlayerCount()
+        new EVT_UpdatePlayerCount(),
+        new EVT_LoginEvent()
     };
 
     public static String gitHubUser = "Spigot-Plugin-Ecosystem";

@@ -5,7 +5,9 @@ import de.korzhorz.signs.subserver.PluginConfig;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class ConfigFiles {
     public static ConfigFile config = new ConfigFile("config.yml");
@@ -41,6 +43,11 @@ public class ConfigFiles {
         messages.setDefault("commands.maintenance.disable", "&7Der &6Wartungsmodus &7wurde &cdeaktiviert&7.");
 
         messages.setDefault("commands.motd.set", "&7Die &6Serverinformation &7wurde &agespeichert &7.");
+
+        List<String> maintenanceKick = new ArrayList<>();
+        maintenanceKick.add("&cMomentan finden &4&lWartungsarbeiten &cstatt.");
+        maintenanceKick.add("&cDu kannst den Server deshalb nicht betreten.");
+        messages.setDefault("maintenance.kick", maintenanceKick);
 
         messages.save();
 

@@ -1,16 +1,21 @@
 package de.korzhorz.signs.subserver.commands;
 
+import de.korzhorz.signs.subserver.configs.ConfigFiles;
 import de.korzhorz.signs.subserver.database.DB_Signs;
 import de.korzhorz.signs.subserver.util.messages.CTUtil;
 import de.korzhorz.signs.subserver.util.messages.Messages;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import java.util.List;
 
 public class CMD_Maintenance implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if(!(sender.hasPermission("maintenance"))) {
+        if(!(sender.hasPermission("maintenance.toggle"))) {
             sender.sendMessage(CTUtil.translate(Messages.get("prefix") + "&r " + Messages.get("commands.errors.no-permission")));
             return true;
         }
@@ -39,6 +44,20 @@ public class CMD_Maintenance implements CommandExecutor {
                 message = message.replaceAll("%usage%", command.getUsage());
                 sender.sendMessage(CTUtil.translate(Messages.get("prefix") + "&r " + message));
                 return true;
+        }
+
+        List<String> kickMessages = ConfigFiles.messages.getStringList("maintenance.kick");
+        StringBuilder kickMessageBuilder = new StringBuilder();
+        for(String kickMessage : kickMessages) {
+            kickMessageBuilder.append(kickMessage).append("\n");
+        }
+
+        for(Player player : Bukkit.getOnlinePlayers()) {
+            if(player.hasPermission("maintenance.bypass")) {
+                continue;
+            }
+
+            player.kickPlayer(CTUtil.translate(kickMessageBuilder.toString().trim()));
         }
 
         DB_Signs.getInstance().update(
