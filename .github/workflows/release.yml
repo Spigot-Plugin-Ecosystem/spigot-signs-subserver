@@ -1,0 +1,34 @@
+name: Create release
+
+on:
+  release:
+    types: [ created ]
+
+jobs:
+  release:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: bruceadams/get-release@v1.3.2
+        id: get_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: temurin
+      - name: Compile Minecraft Spigot (via BuildTools)
+        uses: SpraxDev/Action-SpigotMC@v4.2.0
+        with:
+          versions: 1.20.1
+      - name: Build with Maven
+        run: 'mvn -B -Duser.name="GitHub Runner on $GITHUB_REPOSITORY (id=$GITHUB_RUN_ID)" clean package'
+      - name: 'Upload Release Artifacts'
+        run: |
+          find ./target/ -type f -name '*.jar' | grep -Pv '\/(original|shaded)-.*\.jar$' | while read -r file; do
+            echo $file
+            gh release upload "${{ steps.get_release.outputs.tag_name }}" "$file" --clobber
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
